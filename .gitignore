@@ -48,3 +48,23 @@ next-env.d.ts
 # sqlite
 *.db
 *.db-journal
+
+# IDE/Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS specific
+Thumbs.db
+.DS_Store
+.directory
+
+# Build/Cache directories
+.turbo
+dist/
+.cache/
+
+# Coverage/Test reports
+.nyc_output/
+junit.xml
