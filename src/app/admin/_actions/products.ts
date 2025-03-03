@@ -70,8 +70,8 @@ export async function deleteProduct(id: string) {
   }
 
 
-  fs.unlink(`public${product.filePath}`);
-  fs.unlink(`public${product.imagePath}`);
+  await fs.unlink(`${product.filePath}`);
+  await fs.unlink(`public${product.imagePath}`);
 
   return product;
 }
