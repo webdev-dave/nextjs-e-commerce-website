@@ -3,7 +3,7 @@
 import db from "@/db/db";
 import { z } from "zod";
 import fs from "fs/promises";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 const fileSchema = z.instanceof(File, { message: "Required" });
@@ -19,10 +19,10 @@ const addSchema = z.object({
   image: imageSchema.refine((file) => file.size > 0, "Required"),
 });
 
-export async function addProduct(formData: FormData) {
+export async function addProduct(prevState: unknown, formData: FormData) {
   const result = addSchema.safeParse(Object.fromEntries(formData.entries()));
   if (result.success === false) {
-    throw new Error("Invalid form data");
+    return result.error.formErrors.fieldErrors;
   }
 
   const data = result.data;
@@ -51,5 +51,27 @@ export async function addProduct(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/products");
+
   redirect("/admin/products");
+}
+
+export async function toggleProductAvailability(
+  id: string,
+  isAvailableForPurchase: boolean
+) {
+  const product = await db.product.update({ where: { id }, data: { isAvailableForPurchase } });
+  return product;
+}
+
+export async function deleteProduct(id: string) {
+  const product = await db.product.delete({ where: { id } });
+  if(product == null){
+    return notFound();
+  }
+
+
+  fs.unlink(`public${product.filePath}`);
+  fs.unlink(`public${product.imagePath}`);
+
+  return product;
 }

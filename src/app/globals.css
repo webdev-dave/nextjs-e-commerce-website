@@ -126,4 +126,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  button,
+  [type="submit"],
+  [type="button"],
+  [type="reset"],
+  a,
+  .cursor-pointer,
+  [data-slot="dropdown-menu-item"] {
+    @apply cursor-pointer;
+  }
+
 }
