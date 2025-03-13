@@ -5,6 +5,7 @@
 - Allow uploading multiple product images per product (need to change how db handles product photos. currently only expects 1)
 - Create an Admin Logout button (& auto logout after 1 hour of no browser activity)
 - Create auth / custom handling for users (allow google auth or email:password setup). Currently, user/customer creation is initiated by a stripe webhook on successful payment. However this must be updated to a custom internal system that handles user/customer accounts & auth
+- Create individual page for each product where a customer can see all details and specs (in depth) for a given product
 
 ### Potential Features
 
@@ -19,3 +20,4 @@
 ### DevMode Notes
 
 - Command to run stripe payments locally: --forward-to localhost:3000/webhooks/stripe
+- Command to test react-email templates: npm run email
