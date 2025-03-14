@@ -10,7 +10,7 @@
 ### Potential Features
 
 - Allow user to input richtext and store in DB with correct markdown
-- Add a shopping cart
+- Add a shopping cart (a part of adding this will mean adding the capability for an order to contain multiple products/items)
 - Add a Shadcn Data Table for admin AdminProductsPage and hookup all data table features to product data
 - If there is ever a use case for a complex form, use Shadcn "Form" component
 - Handle Product Image Storage on Another Server, instead only store links to images in website DB

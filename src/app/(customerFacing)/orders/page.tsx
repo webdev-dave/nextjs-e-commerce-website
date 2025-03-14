@@ -1,5 +1,6 @@
 "use client";
 
+import { emailOrderHistory } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,14 +12,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-label";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 // Once we add user authentication, we can show the user their order history on page but for now we will just email them their order history
 
 export default function MyOrdersPage() {
+  const [data, action] = useActionState(emailOrderHistory, null);
   return (
     <form
-      action=""
+      action={action}
       className="max-w-2xl mx-auto"
     >
       <Card>
@@ -40,11 +43,12 @@ export default function MyOrdersPage() {
                 name="email"
                 id="email"
               />
+              {data?.error && <p className="text-destructive">{data.error}</p>}
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <SubmitButton />
+          {data?.message ? <p>{data.message}</p> : <SubmitButton />}
         </CardFooter>
       </Card>
     </form>
