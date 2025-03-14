@@ -10,6 +10,7 @@
 
 ### Potential Features
 
+- switch ORM from Prisma to Drizzle
 - Allow user to input richtext and store in DB with correct markdown
 - Add a shopping cart (a part of adding this will mean adding the capability for an order to contain multiple products/items)
 - Add a Shadcn DataTable for admin AdminProductsPage and hookup all data table features to product data
