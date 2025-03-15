@@ -3,15 +3,16 @@ import { notFound } from "next/navigation";
 import Stripe from "stripe";
 import CheckoutForm from "./_components/CheckoutForm";
 
-type Props = {
+interface PageProps {
   params: {
     id: string;
   };
-};
+  searchParams?: Record<string, string | string[] | undefined>;
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-export default async function PurchasePage({ params: { id } }: Props) {
+export default async function PurchasePage({ params: { id } }: PageProps) {
   const product = await db.product.findUnique({ where: { id } });
   if (product == null) return notFound();
 
