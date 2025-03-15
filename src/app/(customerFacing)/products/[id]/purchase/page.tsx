@@ -3,15 +3,16 @@ import { notFound } from "next/navigation";
 import Stripe from "stripe";
 import CheckoutForm from "./_components/CheckoutForm";
 
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-export default async function PurchasePage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  // Remove the await from params
+interface PageProps {
+  params: {
+    id: string;
+  };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default async function PurchasePage({ params }: PageProps) {
   const id = params.id;
   const product = await db.product.findUnique({
     where: { id },
@@ -20,7 +21,6 @@ export default async function PurchasePage({
     return notFound();
   }
 
-  // Rest of your code remains the same
   const paymentIntent = await stripe.paymentIntents.create({
     amount: product.priceInCents,
     currency: "USD",
