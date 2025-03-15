@@ -3,6 +3,7 @@
 ## Todo
 
 - Deploy online (both app and db)
+- Figure our how to backup data in NeonDB
 - Allow uploading multiple product images per product (need to change how db handles product photos. currently only expects 1)
 - Create an Admin Logout button (& auto logout after 1 hour of no browser activity)
 - Create auth / custom handling for users (allow google auth or email:password setup). Currently, user/customer creation is initiated by a stripe webhook on successful payment. However this must be updated to a custom internal system that handles user/customer accounts & auth
