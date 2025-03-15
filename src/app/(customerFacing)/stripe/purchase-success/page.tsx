@@ -9,7 +9,7 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export default async function PurchaseSuccessPage(props: {
-  searchParams: Record<string, string>;
+  searchParams: Promise<Record<string, string>>;
 }) {
   const params = await Promise.resolve(props.searchParams);
   const paymentIntentId = params["payment_intent"];
