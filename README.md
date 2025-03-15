@@ -3,6 +3,7 @@
 ## Todo
 
 - Deploy online (both app and db)
+- Get user uploaded images and files to work on netlify
 - Figure our how to backup data in NeonDB
 - Allow uploading multiple product images per product (need to change how db handles product photos. currently only expects 1)
 - Create an Admin Logout button (& auto logout after 1 hour of no browser activity)
