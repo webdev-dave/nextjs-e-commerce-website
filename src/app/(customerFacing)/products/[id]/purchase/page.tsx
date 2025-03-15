@@ -5,12 +5,12 @@ import CheckoutForm from "./_components/CheckoutForm";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-interface PageProps {
+type PageProps = {
   params: {
     id: string;
   };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+  searchParams: Record<string, string | string[] | undefined>;
+};
 
 export default async function PurchasePage({ params }: PageProps) {
   const id = params.id;
