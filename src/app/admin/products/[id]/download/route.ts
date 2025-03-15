@@ -9,8 +9,8 @@ export async function GET(
 ) {
   // Await the params Promise to get the actual id value
   const params = await context.params;
-  const id = params.id;
-  
+  const { id } = params;
+
   const product = await db.product.findUnique({
     where: { id },
     select: { filePath: true, name: true },
