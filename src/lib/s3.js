@@ -8,19 +8,19 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Configure S3 client
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION ?? "us-east-1",
-  credentials:
-    process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
-      ? {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        }
-      : undefined,
-  // For local development, you can use a local S3-compatible service like MinIO
-  ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
-});
-
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME ?? "my-bucket-name-placeholder";
+    region: process.env.MY_AWS_REGION ?? "us-east-1",
+    credentials:
+      process.env.MY_AWS_ACCESS_KEY_ID && process.env.MY_AWS_SECRET_ACCESS_KEY
+        ? {
+            accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY,
+          }
+        : undefined,
+    // For local development, you can use a local S3-compatible service like MinIO
+    ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
+  });
+  
+  const BUCKET_NAME = process.env.MY_AWS_S3_BUCKET_NAME ?? "my-nextjs-app-bucket";
 
 // Upload file to S3
 export async function uploadFileToS3(file, key) {
