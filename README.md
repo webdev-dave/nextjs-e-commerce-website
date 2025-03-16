@@ -10,7 +10,8 @@
 - Create an Admin Logout button (& auto logout after 1 hour of no browser activity)
 - Create auth / custom handling for users (allow google auth or email:password setup). Currently, user/customer creation is initiated by a stripe webhook on successful payment. However this must be updated to a custom internal system that handles user/customer accounts & auth
 - Create individual page for each product where a customer can see all details and specs (in depth) for a given product
-- Fix caching issues for...
+- Fix caching issues for mini image in "ProductForm" (currently loads image from another product as the "current file)
+- Fix caching issue: when a product image gets deleted, the cache still tries to load the same image but since it is already deleted, image fails to load instead of trying to clear cache and load again (figure out how to override cache if no image found)
 
 ### Potential Features
 
