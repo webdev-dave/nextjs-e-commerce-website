@@ -43,7 +43,7 @@ export default function CheckoutForm({
       <div className="flex items-center gap-4">
         <div className="flex-shrink-0 w-1/5 relative h-42">
           <Image
-            src={product.imagePath}
+            src={`/api/images/proxy?path=${encodeURIComponent(product.imagePath)}`}
             fill
             alt={product.name}
             className="object-cover"

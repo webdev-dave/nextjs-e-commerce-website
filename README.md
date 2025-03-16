@@ -24,6 +24,7 @@
 - Handle Product Image Storage on Another Server, instead only store links to images in website DB
 - Add more payment methods via stripe dashboard and gain control of payment menu option-tabs order (currently, I removed all options because I could not figure out how to get "Card"/"Link" to option #1/default option)
 - Add a payment receipt and receipt#/order# on PurchaseSuccessPage (if purchase was successful)
+- add image caching to assist with better load times (be very careful when implementing. this caused many issues in the past)
 
 ### DevMode Notes
 
