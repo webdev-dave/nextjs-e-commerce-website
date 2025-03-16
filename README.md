@@ -1,5 +1,9 @@
 # E-Commerce App
 
+## Live Site
+
+The application is deployed and can be accessed at: [E-Commerce App](https://e-commerce-54.netlify.app)
+
 ## Todo
 
 - add data to .env.local.example and make sure it is not being blocked via gitignore
@@ -12,6 +16,7 @@
 - Create individual page for each product where a customer can see all details and specs (in depth) for a given product
 - Fix caching issues for mini image in "ProductForm" (currently loads image from another product as the "current file)
 - Fix caching issue: when a product image gets deleted, the cache still tries to load the same image but since it is already deleted, image fails to load instead of trying to clear cache and load again (figure out how to override cache if no image found)
+- Fix caching issue: (make sure product price updates appear after an hour). Also, as soon as price is updated, if checking out, a user should be notified of price change
 
 ### Potential Features
 
