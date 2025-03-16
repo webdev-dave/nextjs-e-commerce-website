@@ -6,5 +6,9 @@
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18.18.0"
 
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner"]
+
 [[plugins]]
-  package = "@netlify/plugin-nextjs" 
+  package = "@netlify/plugin-nextjs"
