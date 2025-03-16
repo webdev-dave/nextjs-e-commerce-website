@@ -7,9 +7,17 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { deleteFileFromS3, isS3Path, uploadFileToS3 } from "@/lib/s3.js";
 
-const fileSchema = z.instanceof(File, { message: "Required" });
+// Create a more flexible file schema that works in both browser and Node.js
+const fileSchema =
+  typeof File !== "undefined"
+    ? z.instanceof(File, { message: "Required" })
+    : z.any().refine((val) => val && typeof val === "object" && "size" in val, {
+        message: "Required",
+      });
+
 const imageSchema = fileSchema.refine(
-  (file) => file.size === 0 || file.type.startsWith("image/")
+  (file) => file.size === 0 || (file.type && file.type.startsWith("image/")),
+  { message: "Must be an image file" }
 );
 
 const addSchema = z.object({
