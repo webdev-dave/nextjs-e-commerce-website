@@ -34,6 +34,7 @@ The application is deployed and can be accessed at: [E-Commerce App](https://e-c
 
 ### DevMode Notes
 
+- Command to run app: npm run dev
 - Command to run stripe payments locally: --forward-to localhost:3000/webhooks/stripe
 - Command to test react-email templates: npm run email
 - Command to run prisma studio: npx prisma studio
