@@ -34,11 +34,12 @@ export async function GET(request: NextRequest) {
 
   const contentType = contentTypeMap[extension] || "application/octet-stream";
 
-  // Return the file with appropriate headers and a more reasonable cache duration
+  // Match the cache headers from netlify.toml for consistency
   return new NextResponse(file, {
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "public, max-age=3600", // Cache for 1 hour instead of 1 year
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
     },
   });
 }
