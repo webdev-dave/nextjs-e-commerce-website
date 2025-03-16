@@ -5,6 +5,7 @@ import { z } from "zod";
 import fs from "fs/promises";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { deleteFileFromS3, isS3Path, uploadFileToS3 } from "@/lib/s3.js";
 
 const fileSchema = z.instanceof(File, { message: "Required" });
 const imageSchema = fileSchema.refine(
@@ -26,17 +27,30 @@ export async function addProduct(prevState: unknown, formData: FormData) {
   }
 
   const data = result.data;
+  let filePath, imagePath;
 
-  await fs.mkdir("products", { recursive: true });
-  const filePath = `products/${data.file.name.split(".")[0]}-${crypto.randomUUID()}.${data.file.name.split(".").pop()}`;
-  await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()));
+  // If we have AWS credentials, upload to S3
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    // Upload file to S3
+    const fileKey = `products/${data.file.name.split(".")[0]}-${crypto.randomUUID()}.${data.file.name.split(".").pop()}`;
+    filePath = await uploadFileToS3(data.file, fileKey);
 
-  await fs.mkdir("public/products", { recursive: true });
-  const imagePath = `/products/${data.image.name.split(".")[0]}-${crypto.randomUUID()}.${data.image.name.split(".").pop()}`;
-  await fs.writeFile(
-    `public${imagePath}`,
-    Buffer.from(await data.image.arrayBuffer())
-  );
+    // Upload image to S3
+    const imageKey = `products/${data.image.name.split(".")[0]}-${crypto.randomUUID()}.${data.image.name.split(".").pop()}`;
+    imagePath = await uploadFileToS3(data.image, imageKey);
+  } else {
+    // Fallback to local filesystem for development
+    await fs.mkdir("products", { recursive: true });
+    filePath = `products/${data.file.name.split(".")[0]}-${crypto.randomUUID()}.${data.file.name.split(".").pop()}`;
+    await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()));
+
+    await fs.mkdir("public/products", { recursive: true });
+    imagePath = `/products/${data.image.name.split(".")[0]}-${crypto.randomUUID()}.${data.image.name.split(".").pop()}`;
+    await fs.writeFile(
+      `public${imagePath}`,
+      Buffer.from(await data.image.arrayBuffer())
+    );
+  }
 
   await db.product.create({
     data: {
@@ -78,19 +92,53 @@ export async function updateProduct(
 
   let filePath = product.filePath; // by default, keep the existing file path
   if (data.file != null && data.file.size > 0) {
-    await fs.unlink(product.filePath); //remove the existing file
-    filePath = `products/${data.file.name.split(".")[0]}-${crypto.randomUUID()}.${data.file.name.split(".").pop()}`; // if a new file is uploaded, create a new file path
-    await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()));
+    // Delete old file
+    if (isS3Path(product.filePath)) {
+      await deleteFileFromS3(product.filePath);
+    } else {
+      try {
+        await fs.unlink(product.filePath);
+      } catch (error) {
+        console.error("Error deleting file:", error);
+      }
+    }
+
+    // Upload new file
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      const fileKey = `products/${data.file.name.split(".")[0]}-${crypto.randomUUID()}.${data.file.name.split(".").pop()}`;
+      filePath = await uploadFileToS3(data.file, fileKey);
+    } else {
+      // Fallback to local filesystem for development
+      filePath = `products/${data.file.name.split(".")[0]}-${crypto.randomUUID()}.${data.file.name.split(".").pop()}`;
+      await fs.writeFile(filePath, Buffer.from(await data.file.arrayBuffer()));
+    }
   }
 
   let imagePath = product.imagePath; // by default, keep the existing image path
   if (data.image != null && data.image.size > 0) {
-    await fs.unlink(`public${product.imagePath}`); //remove the existing image
-    imagePath = `/products/${data.image.name.split(".")[0]}-${crypto.randomUUID()}.${data.image.name.split(".").pop()}`; // if a new image is uploaded, create a new image path
-    await fs.writeFile(
-      `public${imagePath}`,
-      Buffer.from(await data.image.arrayBuffer())
-    );
+    // Delete old image
+    if (isS3Path(product.imagePath)) {
+      await deleteFileFromS3(product.imagePath);
+    } else {
+      try {
+        await fs.unlink(`public${product.imagePath}`);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
+    }
+
+    // Upload new image
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      const imageKey = `products/${data.image.name.split(".")[0]}-${crypto.randomUUID()}.${data.image.name.split(".").pop()}`;
+      imagePath = await uploadFileToS3(data.image, imageKey);
+    } else {
+      // Fallback to local filesystem for development
+      imagePath = `/products/${data.image.name.split(".")[0]}-${crypto.randomUUID()}.${data.image.name.split(".").pop()}`;
+      await fs.writeFile(
+        `public${imagePath}`,
+        Buffer.from(await data.image.arrayBuffer())
+      );
+    }
   }
 
   await db.product.update({
@@ -129,8 +177,28 @@ export async function deleteProduct(id: string) {
     return notFound();
   }
 
-  await fs.unlink(`${product.filePath}`);
-  await fs.unlink(`public${product.imagePath}`);
+  // Handle file deletion based on storage type
+  if (isS3Path(product.filePath)) {
+    await deleteFileFromS3(product.filePath);
+  } else {
+    try {
+      await fs.unlink(`${product.filePath}`);
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
+  }
+
+  // Handle image deletion based on storage type
+  if (isS3Path(product.imagePath)) {
+    await deleteFileFromS3(product.imagePath);
+  } else {
+    try {
+      await fs.unlink(`public${product.imagePath}`);
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
+  }
+
   revalidatePath("/");
   revalidatePath("/products");
   return product;

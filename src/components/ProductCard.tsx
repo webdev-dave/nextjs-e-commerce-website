@@ -1,3 +1,5 @@
+"use client";
+
 import { formatCurrency } from "@/lib/formatters";
 import {
   Card,
@@ -10,6 +12,8 @@ import {
 import Link from "next/link";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import { getImageUrl } from "@/lib/getImageUrl";
+import { useEffect, useState } from "react";
 
 type ProductCardProps = {
   id: string;
@@ -26,15 +30,47 @@ export function ProductCard({
   description,
   imagePath,
 }: ProductCardProps) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      try {
+        setIsLoading(true);
+        setImageError(false);
+        const url = await getImageUrl(imagePath);
+        setImageUrl(url);
+      } catch (error) {
+        console.error("Error loading image:", error);
+        setImageError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadImage();
+  }, [imagePath]);
+
   return (
     <Card className="flex overflow-hidden flex-col">
       <div className="relative w-full h-auto aspect-video">
-        <Image
-          src={imagePath}
-          fill
-          alt={name}
-          className="object-cover"
-        />
+        {isLoading ? (
+          <div className="w-full h-full bg-gray-200 animate-pulse" />
+        ) : imageUrl && !imageError ? (
+          <Image
+            src={imageUrl}
+            fill
+            alt={name}
+            className="object-cover"
+            onError={() => setImageError(true)}
+            unoptimized={true}
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400">Image not available</span>
+          </div>
+        )}
       </div>
       <CardHeader>
         <CardTitle>{name}</CardTitle>

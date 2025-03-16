@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/formatters";
+import { isS3Path } from "@/lib/s3.js";
+import { getImageUrl } from "@/lib/getImageUrl";
 import { useActionState, useState, useEffect } from "react";
 import { addProduct, updateProduct } from "../../_actions/products";
 import { useFormStatus } from "react-dom";
@@ -21,14 +23,37 @@ export function ProductForm({ product }: { product?: Product | null }) {
   );
   const [imageHovered, setImageHovered] = useState(false);
   const [fileHovered, setFileHovered] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    product?.imagePath || null
-  );
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [s3ImageUrl, setS3ImageUrl] = useState<string | null>(null);
+
+  // Handle S3 image paths
+  useEffect(() => {
+    if (product?.imagePath && isS3Path(product.imagePath)) {
+      // Use our getImageUrl utility instead of manually constructing the URL
+      const fetchImageUrl = async () => {
+        try {
+          const url = await getImageUrl(product.imagePath);
+          setS3ImageUrl(url);
+        } catch (error) {
+          console.error("Error fetching S3 image URL:", error);
+        }
+      };
+
+      fetchImageUrl();
+    } else if (product?.imagePath) {
+      // Local image path
+      setImagePreview(product.imagePath);
+    }
+  }, [product?.imagePath]);
 
   useEffect(() => {
     return () => {
       // Clean up the URL object when component unmounts
-      if (imagePreview && imagePreview !== product?.imagePath) {
+      if (
+        imagePreview &&
+        imagePreview !== product?.imagePath &&
+        !isS3Path(imagePreview)
+      ) {
         URL.revokeObjectURL(imagePreview);
       }
     };
@@ -37,7 +62,7 @@ export function ProductForm({ product }: { product?: Product | null }) {
   return (
     <form
       action={action}
-      className="space-y-8"
+      className="space-y-4"
     >
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
@@ -45,25 +70,25 @@ export function ProductForm({ product }: { product?: Product | null }) {
           type="text"
           id="name"
           name="name"
+          defaultValue={product?.name}
           required
-          defaultValue={product?.name || ""}
         />
         {error.name && <div className="text-destructive">{error.name}</div>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="priceInCents">Price In Cents</Label>
+        <Label htmlFor="price">
+          Price - {formatCurrency(Number(priceInCents) / 100)}
+        </Label>
         <Input
-          type="number"
-          id="priceInCents"
+          id="price"
           name="priceInCents"
-          required
+          type="number"
+          min={0}
+          step={1}
           value={priceInCents}
           onChange={(e) => setPriceInCents(e.target.value)}
-          onWheel={(e) => (e.target as HTMLInputElement).blur()}
+          required
         />
-        <div className="text-muted-foreground">
-          {formatCurrency((Number(priceInCents) || 0) / 100)}
-        </div>
         {error.priceInCents && (
           <div className="text-destructive">{error.priceInCents}</div>
         )}
@@ -73,8 +98,8 @@ export function ProductForm({ product }: { product?: Product | null }) {
         <Textarea
           id="description"
           name="description"
-          required
           defaultValue={product?.description}
+          required
         />
         {error.description && (
           <div className="text-destructive">{error.description}</div>
@@ -85,9 +110,28 @@ export function ProductForm({ product }: { product?: Product | null }) {
         {product?.imagePath && (
           <div className="mb-2">
             <p className="text-sm text-muted-foreground">
-              Current file: {product.imagePath.split("/").pop()}
+              Current file:{" "}
+              {isS3Path(product.imagePath)
+                ? product.imagePath.split("/").pop()
+                : product.imagePath.split("/").pop()}
             </p>
           </div>
+        )}
+        {imagePreview && (
+          <Image
+            src={imagePreview}
+            height="100"
+            width="100"
+            alt="Product Image"
+          />
+        )}
+        {s3ImageUrl && !imagePreview && (
+          <Image
+            src={s3ImageUrl}
+            height="100"
+            width="100"
+            alt="Product Image"
+          />
         )}
         <Input
           type="file"
@@ -102,6 +146,7 @@ export function ProductForm({ product }: { product?: Product | null }) {
             if (file) {
               const url = URL.createObjectURL(file);
               setImagePreview(url);
+              setS3ImageUrl(null); // Clear S3 URL when a new file is selected
             }
           }}
         />
@@ -110,14 +155,7 @@ export function ProductForm({ product }: { product?: Product | null }) {
             Only upload a new image if you want to overwrite the current one.
           </p>
         )}
-        {imagePreview && (
-          <Image
-            src={imagePreview}
-            height="100"
-            width="100"
-            alt="Product Image"
-          />
-        )}
+        
         {error.image && <div className="text-destructive">{error.image}</div>}
       </div>
       <div className="space-y-2">
@@ -125,7 +163,10 @@ export function ProductForm({ product }: { product?: Product | null }) {
         {product?.filePath && (
           <div className="mb-2">
             <p className="text-sm text-muted-foreground">
-              Current file: {product.filePath.split("/").pop()}
+              Current file:{" "}
+              {isS3Path(product.filePath)
+                ? product.filePath.split("/").pop()
+                : product.filePath.split("/").pop()}
             </p>
           </div>
         )}
@@ -154,14 +195,7 @@ export function ProductForm({ product }: { product?: Product | null }) {
 
 function SubmitButton() {
   const { pending } = useFormStatus();
-
   return (
-    <Button
-      type="submit"
-      disabled={pending}
-      className="w-full"
-    >
-      {pending ? "Saving..." : "Save"}
-    </Button>
+    <Button disabled={pending}>{pending ? "Saving..." : "Save Product"}</Button>
   );
 }

@@ -2,6 +2,7 @@
 
 ## Todo
 
+- add data to .env.local.example and make sure it is not being blocked via gitignore
 - Deploy online (both app and db)
 - Get user uploaded images and files to work on netlify
 - Figure our how to backup data in NeonDB
@@ -12,6 +13,7 @@
 
 ### Potential Features
 
+- Begin using cloudinary for uploading image/video files (leave AWS S3 integrated for use of all other filetypes)
 - switch ORM from Prisma to Drizzle
 - Allow user to input richtext and store in DB with correct markdown
 - Add a shopping cart (a part of adding this will mean adding the capability for an order to contain multiple products/items)
