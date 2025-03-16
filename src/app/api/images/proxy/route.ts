@@ -6,6 +6,9 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const path = searchParams.get("path");
 
+  // Add debugging logs
+  console.log("Image proxy request for path:", path);
+
   if (!path) {
     return NextResponse.json({ error: "Path is required" }, { status: 400 });
   }
@@ -15,30 +18,44 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(path, request.url));
   }
 
-  // For S3 files, we need to fetch the file and stream it
-  const file = await getFileFromS3(path);
-  if (!file) {
-    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  try {
+    // For S3 files, we need to fetch the file and stream it
+    const file = await getFileFromS3(path);
+    if (!file) {
+      console.error("S3 file not found:", path);
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+
+    // Log successful retrieval
+    console.log("Successfully retrieved S3 file:", path);
+
+    // Extract content type based on file extension
+    const extension = path.split(".").pop()?.toLowerCase() || "";
+    const contentTypeMap: Record<string, string> = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      webp: "image/webp",
+      svg: "image/svg+xml",
+    };
+
+    const contentType = contentTypeMap[extension] || "application/octet-stream";
+
+    // TEMPORARILY DISABLE CACHING FOR DEBUGGING
+    return new NextResponse(file, {
+      headers: {
+        "Content-Type": contentType,
+        "Cache-Control": "no-store, max-age=0",
+        // Add a unique response ID to help track responses
+        "X-Response-ID": Date.now().toString(),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching S3 file:", path, error);
+    return NextResponse.json(
+      { error: "Error fetching file", details: String(error) },
+      { status: 500 }
+    );
   }
-
-  // Extract content type based on file extension
-  const extension = path.split(".").pop()?.toLowerCase() || "";
-  const contentTypeMap: Record<string, string> = {
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-    gif: "image/gif",
-    webp: "image/webp",
-    svg: "image/svg+xml",
-  };
-
-  const contentType = contentTypeMap[extension] || "application/octet-stream";
-
-  // Return the file with appropriate headers
-  return new NextResponse(file, {
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=31536000, immutable",
-    },
-  });
 }
