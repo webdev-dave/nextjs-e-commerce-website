@@ -6,6 +6,7 @@ The application is deployed and can be accessed at: [E-Commerce App](https://e-c
 
 ## Todo
 
+- make sure all email templates can access images via new method aws S3 bucket via local proxy api (seems broken currently)
 - add data to .env.local.example and make sure it is not being blocked via gitignore
 - Deploy online (both app and db)
 - Get user uploaded images and files to work on netlify
